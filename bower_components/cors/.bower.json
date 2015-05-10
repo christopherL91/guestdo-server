@@ -1,0 +1,20 @@
+{
+  "name": "cors",
+  "main": [
+    "./src/main/resources/com/ovea/cors/jquery.ie.cors.js"
+  ],
+  "dependencies": {
+    "jquery": ">=1.7.0"
+  },
+  "homepage": "https://github.com/Ovea/cors",
+  "_release": "806d1d9d2e",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "806d1d9d2e9a98c44c9c02d0fb07c18aeef2bc03"
+  },
+  "_source": "git://github.com/Ovea/cors.git",
+  "_target": "*",
+  "_originalSource": "cors",
+  "_direct": true
+}
