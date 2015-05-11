@@ -15,7 +15,8 @@ var app = require('express')(),
     bcrypt = require('bcrypt-then');
 
 // Connect to mongoDB
-var db = mongoose.connect('mongodb://localhost/guest_do');
+//var db = mongoose.connect('mongodb://localhost/guest_do');
+var db = mongoose.connect('mongodb://lillt:1234@ds031671.mongolab.com:31671/guestdo');
 
 // JWT secret.
 var secret = 'unicorns are awesome';
@@ -85,6 +86,7 @@ app.get('/api/current', function(req, res, next) {
                guests: data
             });
         },function (err) {
+            console.log(err);
             next(err);
         });
 });
@@ -178,6 +180,7 @@ app.post('/api/info',function(req,res,next) {
 app.get('/api/roomservice', function(req, res, next) {
     orders.getAllOrders(req.user.hotel_id)
         .then(function (data) {
+            console.log(data);
             res.json({
                 orders: data
             });
