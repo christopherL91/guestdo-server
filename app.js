@@ -12,26 +12,44 @@ var app = require('express')(),
     hotels = require('./models/hotels'),
     orders = require('./models/orders'),
     colors = require('colors/safe'),
+    uuid = require('node-uuid'),
     bcrypt = require('bcrypt-then');
 
 // Connect to mongoDB
 //var db = mongoose.connect('mongodb://localhost/guest_do');
 var db = mongoose.connect('mongodb://lillt:1234@ds031671.mongolab.com:31671/guestdo');
 
+io.set('origins', '*:*');
+
 // JWT secret.
 var secret = 'unicorns are awesome';
 //Server port
-var port = 3000;
+var port = 5000;
 
 // Enable CORS
 app.use(cors());
 app.options('*', cors());
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Credentials","true");
     res.header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept, Accept-Encoding, X-CSRF-Token, Authorization, X-Requested-With");
     res.header("Access-Control-Allow-Methods", "OPTIONS,GET,PUT,POST,DELETE");
     next();
+});
+
+io.on('connection',function(socket) {
+    console.log('Client connected');
+
+    socket.on('NEW_GUEST',function(message) {
+        io.sockets.emit('NEW_GUEST',message);
+    });
+
+    socket.on('REMOVE_GUEST',function(message) {
+        io.sockets.emit('REMOVE_GUEST',message);
+    });
+
+    socket.on('REMOVE_ORDER',function(message) {
+        io.sockets.emit('REMOVE_ORDER',message);
+    });
 });
 
 // Log every request
@@ -61,8 +79,9 @@ app.post('/api/login', function (req, res, next) {
                 }
                 return res.json({
                     token: jsonwebtoken.sign({
-                        hotel_id: id
-                    },
+                            hotel_id: id,
+                            client_id: uuid.v4()
+                        },
                         secret, {
                             // Expire in 2 weeks.
                             expiresInMinutes: 60*24*14,
@@ -81,9 +100,8 @@ app.post('/api/login', function (req, res, next) {
 app.get('/api/current', function(req, res, next) {
     hotels.getCurrentGuests(req.user.hotel_id)
         .then(function (data) {
-            console.log(data);
             res.json({
-               guests: data
+                guests: data
             });
         },function (err) {
             console.log(err);
@@ -111,19 +129,17 @@ app.delete('/api/current', function(req,res,next) {
 
     hotels.removeCurrentGuest(hotel_id,guest_id)
         .then(function (data) {
-            console.log(data);
             res.json({
-               status: 'removed guest'
+                status: 'removed guest'
             });
         }, function(err) {
-           next(err);
+            next(err);
         });
 });
 
 app.get('/api/future', function(req, res, next) {
     hotels.getFutureGuests(req.user.hotel_id)
         .then(function (data) {
-            console.log(data);
             res.json({
                 guests: data
             });
@@ -152,7 +168,7 @@ app.get('/api/info', function(req, res, next) {
         .then(function (data) {
             var result = data.toObject();
             res.json({
-               info: result.info
+                info: result.info
             });
         },function (err) {
             next(err);
@@ -183,6 +199,21 @@ app.get('/api/roomservice', function(req, res, next) {
             console.log(data);
             res.json({
                 orders: data
+            });
+        },function(err) {
+            console.log(err);
+            next(err);
+        });
+});
+
+app.delete('/api/roomservice', function(req, res, next) {
+    var hotel_id = req.user.hotel_id,
+        order = req.body;
+
+    orders.removeOrder(hotel_id,order)
+        .then(function(data) {
+            res.json({
+               status : data
             });
         },function(err) {
             console.log(err);
@@ -234,6 +265,6 @@ app.use(function unauthorized(err, req, res,next) {
     }
 });
 
-app.listen(port,function () {
+http.listen(port,function () {
     console.log(colors.red('Server started on ' + port));
 });
