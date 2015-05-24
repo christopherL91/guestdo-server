@@ -50,6 +50,10 @@ io.on('connection',function(socket) {
     socket.on('REMOVE_ORDER',function(message) {
         io.sockets.emit('REMOVE_ORDER',message);
     });
+
+    socket.on('NEW_SETTINGS',function(message) {
+        io.sockets.emit('NEW_SETTINGS',message);
+    });
 });
 
 // Log every request
